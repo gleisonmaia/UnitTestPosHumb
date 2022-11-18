@@ -1,0 +1,78 @@
+<project name="Values Project" default="main" basedir=".">
+    <description>build v_1.0 file for this project</description>
+    <property name="source.dir" location="src"></property>
+    <property name="build.dir" location="bin"></property>
+    <property name="doc.dir" location="doc"></property>
+    <property name="jar.dir" location="bin/jar"></property>
+    <property name="lib.dir" location="lib"></property>
+    <property name="report.dir" location="reports"></property>
+
+    <path id="junit.class.path">
+        <pathelement location="lib/junit-4.13.2.jar"></pathelement>
+        <pathelement location="${build.dir}"></pathelement>
+    </path>
+
+    <target name="init" description="setup project directories">
+        <mkdir dir="${build.dir}"></mkdir>
+        <mkdir dir="${doc.dir}"></mkdir>
+    </target>
+
+    <target name="compile" description="compile java sources">
+        <javac srcdir="${source.dir}" destdir="${build.dir}">
+            <classpath refid="junit.class.path"></classpath>
+        </javac>
+    </target>
+
+    <target name="doc" depends="init" description="generate documentation">
+        <javadoc destdir="${doc.dir}">
+            <fileset dir="${source.dir}/main"></fileset>
+        </javadoc>
+    </target>
+
+    <target name="clean" description="tidy up the workspace">
+        <delete dir="${build.dir}"></delete>
+        <delete dir="${doc.dir}"></delete>
+        <delete>
+            <fileset defaultexcludes="no" dir="${source.dir}" includes="*/~"></fileset>
+        </delete>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/ant_build_01.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="unipe.Loader"/>
+            </manifest>
+            <zipgroupfileset dir="${lib.dir}" includes="*.jar"/>
+        </jar>
+    </target>
+
+    <target name="unittest">
+        <mkdir dir="${report.dir}"/>
+        <mkdir dir="${report.dir}/raw"/>
+        <mkdir dir="${report.dir}/html/"/>
+        <junit printsummary="yes" haltonfailure="yes" showoutput="yes">
+            <classpath location="${build.dir}" >
+<!--                <pathelement location="${build.dir}"/>-->
+                <fileset dir="${basedir}">
+                    <include name="lib/*.jar" />
+                </fileset>
+            </classpath>
+            <test name="ValoresTest" todir="${report.dir}/raw"/>
+            <formatter type="xml"/>
+        </junit>
+    </target>
+
+    <target name="test-reports" depends="unittest">
+        <junitreport todir="${report.dir}">
+            <fileset dir="${report.dir}/raw/">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="noframes" todir="${report.dir}/html/" />
+        </junitreport>
+    </target>
+
+    <target name="main" depends="clean, init, compile, doc, unittest, test-reports, jar">
+        <description>main target</description>
+    </target>
+</project>
